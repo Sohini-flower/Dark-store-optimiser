@@ -1,0 +1,60 @@
+A mixture of city-center and uniformly distributed points
+produces a simple illustrative demand distribution.
+"""
+rng = np.random.default_rng(seed)
+
+# Customer points: 70% around the urban core, 30% uniform.
+n_core = int(n_customers * 0.70)
+n_outer = n_customers - n_core
+
+core_lat = rng.normal(13.075, 0.035, n_core)
+core_lon = rng.normal(80.245, 0.045, n_core)
+
+outer_lat = rng.uniform(
+    CHENNAI_BOUNDS["lat_min"],
+    CHENNAI_BOUNDS["lat_max"],
+    n_outer,
+)
+outer_lon = rng.uniform(
+    CHENNAI_BOUNDS["lon_min"],
+    CHENNAI_BOUNDS["lon_max"],
+    n_outer,
+)
+
+customer_lat = np.clip(
+    np.concatenate([core_lat, outer_lat]),
+    CHENNAI_BOUNDS["lat_min"],
+    CHENNAI_BOUNDS["lat_max"],
+)
+customer_lon = np.clip(
+    np.concatenate([core_lon, outer_lon]),
+    CHENNAI_BOUNDS["lon_min"],
+    CHENNAI_BOUNDS["lon_max"],
+)
+
+# Candidate sites are sampled across the same area.
+store_lat = rng.uniform(
+    CHENNAI_BOUNDS["lat_min"],
+    CHENNAI_BOUNDS["lat_max"],
+    n_candidates,
+)
+store_lon = rng.uniform(
+    CHENNAI_BOUNDS["lon_min"],
+    CHENNAI_BOUNDS["lon_max"],
+    n_candidates,
+)
+
+customers = pd.DataFrame({
+    "customer_id": [f"C{i + 1:05d}" for i in range(n_customers)],
+    "latitude": customer_lat,
+    "longitude": customer_lon,
+    "demand_orders": np.ones(n_customers, dtype=int),
+})
+
+stores = pd.DataFrame({
+    "store_id": [f"S{i + 1:03d}" for i in range(n_candidates)],
+    "latitude": store_lat,
+    "longitude": store_lon,
+})
+
+return customers, stores
